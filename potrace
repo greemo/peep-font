@@ -1,0 +1,19 @@
+#!/bin/bash
+# To use, move the potrace binary to potrace-bin, then place this script
+# somewhere on the path so that it'll be found by fontforge.
+# After autotracing, you'll need to apply the following transformation:
+#   scale uniform 10%, using glyph origin as the origin
+
+# get the last parameter passed by fontforge - the name of the temp img file
+for last; do true; done
+# get all of the other parameters
+length=$(($#-1))
+array=${@:1:$length}
+# get the size of the passed image
+size=$(identify $last | grep -Po "[0-9]+x[0-9]+" | head -1)
+# multiply that size by 10
+newsize=$(python -c "x = '$size'; print('x'.join([str(int(i)*10) for i in x.split('x')]))")
+# scale up 10x and then use potrace to trace the pixelated outline
+cat $last | mkbitmap -s 1 | convert -scale $newsize - - | potrace-bin -a 0 $array
+
+
